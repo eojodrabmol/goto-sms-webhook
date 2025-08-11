@@ -1,24 +1,324 @@
-{
-  "name": "goto-sms-webhook",
-  "version": "1.0.0",
-  "description": "Webhook handler for GoTo Connect dial plan SMS notifications",
-  "main": "app.js",
-  "scripts": {
-    "start": "node app.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "engines": {
-    "node": "18.x"
-  },
-  "dependencies": {
-    "express": "^4.18.2",
-    "axios": "^1.6.0"
-  },
-  "keywords": [
-    "goto",
-    "webhook",
-    "sms"
-  ],
-  "author": "",
-  "license": "ISC"
+const express = require('express');
+const axios = require('axios');
+const app = express();
+
+// Use Render's PORT or default to 3000 for local testing
+const port = process.env.PORT || 3000;
+
+// Middleware to parse JSON bodies
+app.use(express.json());
+
+// Base configuration from environment variables
+const config = {
+    clientId: process.env.GOTO_CLIENT_ID,
+    clientSecret: process.env.GOTO_CLIENT_SECRET,
+    gotoPhoneNumber: process.env.GOTO_PHONE_NUMBER,
+    tokenUrl: 'https://authentication.logmeininc.com/oauth/token',
+    smsApiUrl: 'https://api.goto.com/messaging/v1/messages'
+};
+
+// NOTIFICATION CONFIGURATIONS
+// Customize these for different scenarios
+const notificationConfigs = {
+    // After hours calls
+    'after-hours': {
+        recipients: process.env.AFTER_HOURS_PHONES || process.env.MY_PHONE_NUMBER,
+        messageTemplate: '🌙 After Hours Call\nFrom: {callerNumber}\nTime: {time}\nExtension: {extension}',
+        description: 'Alerts for calls received after business hours'
+    },
+    
+    // Emergency/urgent calls
+    'emergency': {
+        recipients: process.env.EMERGENCY_PHONES || process.env.MY_PHONE_NUMBER,
+        messageTemplate: '🚨 EMERGENCY CALL\nFrom: {callerNumber}\nTime: {time}\nURGENT ATTENTION REQUIRED',
+        description: 'Emergency call notifications'
+    },
+    
+    // VIP customer alerts
+    'vip-customer': {
+        recipients: process.env.VIP_ALERT_PHONES || process.env.MY_PHONE_NUMBER,
+        messageTemplate: '⭐ VIP Customer Calling\nName: {callerName}\nNumber: {callerNumber}\nTime: {time}',
+        description: 'VIP customer call alerts'
+    },
+    
+    // Sales line notifications
+    'sales-line': {
+        recipients: process.env.SALES_TEAM_PHONES || process.env.MY_PHONE_NUMBER,
+        messageTemplate: '💼 Sales Call\nFrom: {callerNumber}\nTime: {time}\nSales line: {extension}',
+        description: 'New sales inquiry'
+    },
+    
+    // Support queue overflow
+    'queue-overflow': {
+        recipients: process.env.MANAGER_PHONES || process.env.MY_PHONE_NUMBER,
+        messageTemplate: '⚠️ Queue Overflow\nCaller waiting: {callerNumber}\nWait time exceeded\nTime: {time}',
+        description: 'Support queue overflow alert'
+    },
+    
+    // Missed call notifications
+    'missed-call': {
+        recipients: process.env.MISSED_CALL_PHONES || process.env.MY_PHONE_NUMBER,
+        messageTemplate: '📞 Missed Call\nFrom: {callerNumber}\nTo: {extension}\nTime: {time}',
+        description: 'Missed call notification'
+    },
+    
+    // General notification (default)
+    'general': {
+        recipients: process.env.MY_PHONE_NUMBER,
+        messageTemplate: '📞 Call Alert\nFrom: {callerNumber}\nTo: {extension}\nTime: {time}',
+        description: 'General call notification'
+    },
+    
+    // Custom notification with dynamic message
+    'custom': {
+        recipients: process.env.MY_PHONE_NUMBER,
+        messageTemplate: '{customMessage}',
+        description: 'Custom message that can be set via URL parameters'
+    }
+};
+
+// Store the access token and expiry
+let accessToken = null;
+let tokenExpiry = null;
+
+// Parse phone numbers from comma-separated string
+function parsePhoneNumbers(phoneString) {
+    if (!phoneString) return [];
+    return phoneString.split(',').map(num => num.trim()).filter(num => num);
 }
+
+// Function to get or refresh the access token
+async function getAccessToken() {
+    if (accessToken && tokenExpiry && new Date() < tokenExpiry) {
+        return accessToken;
+    }
+
+    try {
+        console.log('🔐 Requesting new access token...');
+        
+        const params = new URLSearchParams();
+        params.append('grant_type', 'client_credentials');
+        params.append('client_id', config.clientId);
+        params.append('client_secret', config.clientSecret);
+        params.append('scope', 'messaging.v1.send');
+
+        const response = await axios.post(config.tokenUrl, params, {
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            }
+        });
+
+        accessToken = response.data.access_token;
+        const expiresIn = response.data.expires_in || 3600;
+        tokenExpiry = new Date(Date.now() + ((expiresIn - 300) * 1000));
+        
+        console.log('✅ Access token obtained successfully');
+        return accessToken;
+    } catch (error) {
+        console.error('❌ Error obtaining access token:', error.response?.data || error.message);
+        throw error;
+    }
+}
+
+// Function to send SMS
+async function sendSMS(message, recipients) {
+    try {
+        const token = await getAccessToken();
+        const phoneNumbers = parsePhoneNumbers(recipients);
+        
+        if (phoneNumbers.length === 0) {
+            throw new Error('No valid recipient phone numbers');
+        }
+        
+        console.log('📱 Sending SMS...');
+        console.log('- From:', config.gotoPhoneNumber);
+        console.log('- To:', phoneNumbers.join(', '));
+        console.log('- Message:', message.substring(0, 50) + '...');
+        
+        const options = {
+            method: 'POST',
+            url: config.smsApiUrl,
+            headers: {
+                Authorization: `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            data: {
+                ownerPhoneNumber: config.gotoPhoneNumber,
+                contactPhoneNumbers: phoneNumbers,
+                body: message
+            }
+        };
+
+        const response = await axios.request(options);
+        console.log('✅ SMS sent to', phoneNumbers.length, 'recipients');
+        return response.data;
+    } catch (error) {
+        console.error('❌ Error sending SMS:', error.response?.data || error.message);
+        throw error;
+    }
+}
+
+// Function to format message from template
+function formatMessage(template, data) {
+    let message = template;
+    
+    // Replace all placeholders with actual data
+    message = message.replace('{callerNumber}', data.callerNumber || 'Unknown');
+    message = message.replace('{callerName}', data.callerName || data.callerNumber || 'Unknown');
+    message = message.replace('{extension}', data.extension || data.extensionNumber || 'N/A');
+    message = message.replace('{time}', new Date().toLocaleTimeString());
+    message = message.replace('{date}', new Date().toLocaleDateString());
+    message = message.replace('{customMessage}', data.customMessage || 'Notification');
+    message = message.replace('{queueName}', data.queueName || 'N/A');
+    message = message.replace('{waitTime}', data.waitTime || 'N/A');
+    
+    return message;
+}
+
+// Root endpoint - shows all available webhooks
+app.get('/', (req, res) => {
+    const baseUrl = `https://${req.get('host')}`;
+    
+    const endpoints = Object.keys(notificationConfigs).map(key => ({
+        name: key,
+        url: `${baseUrl}/notify/${key}`,
+        description: notificationConfigs[key].description,
+        recipients: parsePhoneNumbers(notificationConfigs[key].recipients).length + ' recipient(s)'
+    }));
+    
+    res.json({
+        status: 'running',
+        message: 'GoTo Multi-Webhook Handler',
+        availableEndpoints: endpoints,
+        dialPlanInstructions: 'Use any of the URLs above in your HTTP Notify node',
+        testEndpoint: `${baseUrl}/test-sms`,
+        timestamp: new Date().toISOString()
+    });
+});
+
+// Generic webhook handler for different notification types
+app.post('/notify/:type', async (req, res) => {
+    const notificationType = req.params.type;
+    const config = notificationConfigs[notificationType];
+    
+    if (!config) {
+        return res.status(404).json({
+            error: 'Unknown notification type',
+            available: Object.keys(notificationConfigs)
+        });
+    }
+    
+    console.log(`🔔 ${notificationType.toUpperCase()} notification received`);
+    console.log('Payload:', JSON.stringify(req.body, null, 2));
+    
+    try {
+        // Extract data from webhook payload
+        const data = {
+            callerNumber: req.body.callerNumber || req.body.caller || req.body.from,
+            callerName: req.body.callerName || req.body.name,
+            extension: req.body.extension || req.body.extensionNumber || req.body.to,
+            customMessage: req.body.message || req.query.message,
+            queueName: req.body.queueName,
+            waitTime: req.body.waitTime,
+            ...req.body  // Include all other fields
+        };
+        
+        // Format the message using the template
+        const message = formatMessage(config.messageTemplate, data);
+        
+        // Send SMS to configured recipients
+        await sendSMS(message, config.recipients);
+        
+        res.status(200).json({
+            success: true,
+            type: notificationType,
+            message: 'Notification sent successfully',
+            recipientCount: parsePhoneNumbers(config.recipients).length
+        });
+    } catch (error) {
+        console.error('❌ Error processing webhook:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+
+// Simple webhook for backward compatibility
+app.post('/dial-plan-webhook', async (req, res) => {
+    // Redirect to general notification
+    req.params.type = 'general';
+    return app._router.handle(req, res);
+});
+
+// Test endpoint
+app.post('/test-sms', async (req, res) => {
+    try {
+        const type = req.body.type || 'general';
+        const testConfig = notificationConfigs[type];
+        
+        const testMessage = req.body.message || 
+            `🧪 Test ${type} notification\nTime: ${new Date().toLocaleString()}\nYour ${type} webhook is working!`;
+        
+        await sendSMS(testMessage, testConfig.recipients);
+        
+        res.json({ 
+            success: true,
+            type: type,
+            message: 'Test SMS sent successfully',
+            recipients: parsePhoneNumbers(testConfig.recipients)
+        });
+    } catch (error) {
+        res.status(500).json({ 
+            success: false, 
+            error: error.message
+        });
+    }
+});
+
+// Configuration endpoint - shows current setup
+app.get('/config', (req, res) => {
+    const configs = {};
+    for (const [key, value] of Object.entries(notificationConfigs)) {
+        configs[key] = {
+            description: value.description,
+            recipientCount: parsePhoneNumbers(value.recipients).length,
+            messagePreview: value.messageTemplate.substring(0, 50) + '...'
+        };
+    }
+    
+    res.json({
+        gotoPhoneConfigured: !!config.gotoPhoneNumber,
+        credentialsConfigured: !!(config.clientId && config.clientSecret),
+        notificationTypes: configs
+    });
+});
+
+// Health check
+app.get('/health', (req, res) => {
+    res.json({ 
+        status: 'healthy',
+        uptime: process.uptime() + ' seconds',
+        timestamp: new Date().toISOString()
+    });
+});
+
+// Start the server
+app.listen(port, () => {
+    console.log('========================================');
+    console.log('🚀 GoTo Multi-Webhook Handler Started');
+    console.log('========================================');
+    console.log(`📡 Server running on port ${port}`);
+    console.log('');
+    console.log('Available webhook endpoints:');
+    for (const [key, value] of Object.entries(notificationConfigs)) {
+        console.log(`  /${key} - ${value.description}`);
+    }
+    console.log('========================================');
+    console.log('Configure in GoTo Dial Plan:');
+    console.log('HTTP Notify URL examples:');
+    console.log('  https://your-app.onrender.com/notify/after-hours');
+    console.log('  https://your-app.onrender.com/notify/emergency');
+    console.log('  https://your-app.onrender.com/notify/vip-customer');
+    console.log('========================================');
+});
