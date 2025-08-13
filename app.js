@@ -22,7 +22,7 @@ const config = {
 //};
 
  clientId: '39c83257-2599-49f5-9e18-4f043c3f16e5',  // YOUR ACTUAL CLIENT ID
-    clientSecret: 'YOUR_ACTUAL_CLIENT_SECRET_HERE',     // YOUR ACTUAL SECRET (don't share this!)
+    clientSecret: 'XA57RPTVbeNEJPUpdHoPHAXp',     // YOUR ACTUAL SECRET (don't share this!)
     gotoPhoneNumber: '+16254002500',                    // Your GoTo phone number
     myPhoneNumber: '+16158305740',                      // Your personal cell phone
     tokenUrl: 'https://authentication.logmeininc.com/oauth/token',
@@ -1474,5 +1474,6 @@ app.listen(port, () => {
     }
     console.log('========================================');
 });
+
 
 
