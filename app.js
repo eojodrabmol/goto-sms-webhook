@@ -363,7 +363,7 @@ app.post('/test-sms', async (req, res) => {
 app.get('/health', (req, res) => {
     res.json({ 
         status: 'healthy',
-        uptime: process.uptime() + ' seconds',
+        uptime: Math.round(process.uptime()),
         version: APP_VERSION,
         timestamp: new Date().toISOString()
     });
@@ -1464,3 +1464,4 @@ app.listen(port, () => {
     }
     console.log('========================================');
 });
+
