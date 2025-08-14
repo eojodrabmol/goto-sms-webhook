@@ -123,7 +123,7 @@ async function loadWebhooks() {
             }
         };
     }
-}
+
 
 // Save webhooks to file
 async function saveWebhooks(webhooks) {
@@ -1740,3 +1740,4 @@ function getHelpHTML() {
         console.log('========================================');
     });
 })();
+
