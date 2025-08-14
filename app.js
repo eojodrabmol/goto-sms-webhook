@@ -1020,3 +1020,725 @@ function getManagerHTML(host) {
             font-size: 16px;
         }
 
+
+</style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="header-left">
+                <div>
+                    <h1>${APP_NAME}</h1>
+                    <div class="version">Version ${APP_VERSION}</div>
+                </div>
+                <span class="webhook-counter" id="webhookCounter">0 Webhooks</span>
+                <span class="status connected" id="connectionStatus">Connected</span>
+            </div>
+            <div class="quick-actions">
+                <button class="btn btn-secondary btn-small" onclick="refreshWebhooks()">Refresh</button>
+                <button class="btn btn-success btn-small" onclick="testConnection()">Test Connection</button>
+                <button class="btn btn-primary btn-small" onclick="showAddWebhookModal()">+ Add Webhook</button>
+                <button class="btn btn-secondary btn-small" onclick="exportData()">Export</button>
+                <button class="btn btn-secondary btn-small" onclick="document.getElementById('importFile').click()">Import</button>
+                <input type="file" id="importFile" style="display: none;" accept=".json" onchange="importData(event)">
+                <button class="btn btn-secondary btn-small" onclick="window.open('/help', '_blank')">Help</button>
+            </div>
+        </div>
+        
+        <div class="main-content">
+            <div class="tabs">
+                <button class="tab active" onclick="switchTab('active')">Webhooks</button>
+                <button class="tab" onclick="switchTab('archived')">Archived</button>
+                <button class="tab" onclick="switchTab('changelog')">Changelog</button>
+                <button class="tab" onclick="switchTab('test')">Test SMS</button>
+            </div>
+            
+            <div class="tab-content active" id="active-tab">
+                <div class="filter-section">
+                    <input type="text" class="filter-input" id="searchFilter" placeholder="Search webhooks..." onkeyup="filterWebhooks()">
+                    <input type="text" class="filter-input" id="tagFilter" placeholder="Filter by tags..." onkeyup="filterWebhooks()">
+                    <select class="filter-input" id="typeFilter" onchange="filterWebhooks()">
+                        <option value="">All Types</option>
+                        <option value="sms">SMS Only</option>
+                        <option value="email">Email Only</option>
+                        <option value="browser">Browser Notify</option>
+                    </select>
+                </div>
+                <div class="webhook-grid" id="webhookList">
+                    <!-- Active webhooks will be loaded here -->
+                </div>
+            </div>
+            
+            <div class="tab-content" id="archived-tab">
+                <div class="webhook-grid" id="archivedList">
+                    <!-- Archived webhooks will be loaded here -->
+                </div>
+            </div>
+            
+            <div class="tab-content" id="changelog-tab">
+                <div id="changelogList">
+                    <!-- Changelog will be loaded here -->
+                </div>
+            </div>
+            
+            <div class="tab-content" id="test-tab">
+                <div class="test-section">
+                    <h3>Test SMS Functionality</h3>
+                    <div class="form-group">
+                        <label>Webhook Type</label>
+                        <select id="testType" style="width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px;" onchange="showTestConfig()">
+                            <option value="general">General</option>
+                        </select>
+                    </div>
+                    <div id="testConfigDisplay" class="test-config">
+                        <!-- Config will show here -->
+                    </div>
+                    <div class="form-group">
+                        <label>Test Message</label>
+                        <textarea id="testMessage" placeholder="Enter your test message here..."></textarea>
+                    </div>
+                    <button class="btn btn-success" onclick="sendTestSMS()">Send Test SMS</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Add/Edit Webhook Modal -->
+    <div class="modal" id="webhookModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Add New Webhook</h2>
+                <button class="close-modal" onclick="closeModal('webhookModal')">&times;</button>
+            </div>
+            <form id="webhookForm">
+                <div class="form-group">
+                    <label>Webhook Name</label>
+                    <input type="text" id="webhookName" required placeholder="e.g., after-hours, emergency, vip" />
+                    <small>Use lowercase letters and hyphens only (will be used in URL)</small>
+                </div>
+                
+                <div class="form-group">
+                    <label>Description</label>
+                    <input type="text" id="webhookDescription" required placeholder="What triggers this notification?" />
+                </div>
+                
+                <div class="form-group">
+                    <label>Tags (comma-separated)</label>
+                    <input type="text" id="webhookTags" placeholder="urgent, sales, support" />
+                    <small>Tags for filtering and organization</small>
+                </div>
+                
+                <div class="form-group">
+                    <label>Notification Methods</label>
+                    <div class="checkbox-group">
+                        <label>
+                            <input type="checkbox" id="enableSMS" checked />
+                            SMS
+                        </label>
+                        <label>
+                            <input type="checkbox" id="enableEmail" />
+                            Email
+                        </label>
+                        <label>
+                            <input type="checkbox" id="enableBrowser" />
+                            Browser Notify
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="form-group" id="recipientsGroup">
+                    <label>SMS Recipients</label>
+                    <input type="text" id="webhookRecipients" placeholder="+15551234567,+15559876543" />
+                    <small>Comma-separated phone numbers with country code</small>
+                </div>
+                
+                <div class="form-group" id="emailGroup" style="display: none;">
+                    <label>Email Recipients</label>
+                    <input type="email" id="webhookEmail" placeholder="email@example.com" />
+                    <small>Email address for notifications</small>
+                </div>
+                
+                <div class="form-group">
+                    <label>Message Template</label>
+                    <textarea id="webhookTemplate" required placeholder="Call from {callerNumber}&#10;Time: {time}&#10;Extension: {extension}"></textarea>
+                    <small>Available variables: {callerNumber}, {callerName}, {extension}, {time}, {date}</small>
+                </div>
+                
+                <button type="submit" class="btn btn-primary" style="width: 100%;">Save Webhook</button>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Toast Notification -->
+    <div class="toast" id="toast"></div>
+    
+    <script>
+        const serviceUrl = window.location.origin;
+        let webhooks = {};
+        let archivedWebhooks = {};
+        let editingWebhook = null;
+        let allWebhooks = {};
+        
+        // Initialize
+        async function init() {
+            await refreshWebhooks();
+            await loadChangelog();
+            updateTestTypeOptions();
+            setupNotificationCheckboxes();
+        }
+        
+        // Setup notification checkboxes
+        function setupNotificationCheckboxes() {
+            document.getElementById('enableEmail').addEventListener('change', (e) => {
+                document.getElementById('emailGroup').style.display = e.target.checked ? 'block' : 'none';
+            });
+            
+            document.getElementById('enableSMS').addEventListener('change', (e) => {
+                document.getElementById('recipientsGroup').style.display = e.target.checked ? 'block' : 'none';
+            });
+        }
+        
+        // Switch tabs
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(tabName + '-tab').classList.add('active');
+            
+            if (tabName === 'changelog') {
+                loadChangelog();
+            }
+        }
+        
+        // Filter webhooks
+        function filterWebhooks() {
+            const searchTerm = document.getElementById('searchFilter').value.toLowerCase();
+            const tagFilter = document.getElementById('tagFilter').value.toLowerCase();
+            const typeFilter = document.getElementById('typeFilter').value;
+            
+            const filtered = {};
+            for (const [name, config] of Object.entries(allWebhooks)) {
+                let show = true;
+                
+                // Search filter
+                if (searchTerm && !name.includes(searchTerm) && !config.description.toLowerCase().includes(searchTerm)) {
+                    show = false;
+                }
+                
+                // Tag filter
+                if (tagFilter && config.tags) {
+                    const tags = config.tags.join(' ').toLowerCase();
+                    if (!tags.includes(tagFilter)) {
+                        show = false;
+                    }
+                }
+                
+                // Type filter
+                if (typeFilter) {
+                    if (typeFilter === 'sms' && !config.recipients) show = false;
+                    if (typeFilter === 'email' && !config.email) show = false;
+                    if (typeFilter === 'browser' && !config.browserNotify) show = false;
+                }
+                
+                if (show) {
+                    filtered[name] = config;
+                }
+            }
+            
+            displayWebhooks(filtered);
+        }
+        
+        // Refresh webhooks from server
+        async function refreshWebhooks() {
+            try {
+                const response = await fetch(serviceUrl + '/api/webhooks');
+                const data = await response.json();
+                webhooks = data.webhooks || {};
+                allWebhooks = { ...webhooks };
+                archivedWebhooks = data.archived || {};
+                displayWebhooks(webhooks);
+                displayArchivedWebhooks();
+                updateTestTypeOptions();
+                updateWebhookCounter();
+                showToast('Data loaded successfully');
+            } catch (error) {
+                showToast('Error loading webhooks: ' + error.message, true);
+            }
+        }
+        
+        // Update webhook counter
+        function updateWebhookCounter() {
+            const count = Object.keys(webhooks).length;
+            document.getElementById('webhookCounter').textContent = count + ' Webhook' + (count !== 1 ? 's' : '');
+        }
+        
+        // Display active webhooks
+        function displayWebhooks(webhooksToDisplay = webhooks) {
+            const list = document.getElementById('webhookList');
+            
+            if (Object.keys(webhooksToDisplay).length === 0) {
+                list.innerHTML = '<div class="empty-state">No webhooks found. Click "+ Add Webhook" to create one.</div>';
+                return;
+            }
+            
+            list.innerHTML = '';
+            
+            for (const [name, config] of Object.entries(webhooksToDisplay)) {
+                const webhookUrl = serviceUrl + '/sms-whook/' + name;
+                const item = document.createElement('div');
+                item.className = 'webhook-item';
+                
+                const indicators = [];
+                if (config.recipients) indicators.push('<span class="indicator sms">SMS</span>');
+                if (config.email) indicators.push('<span class="indicator email">Email</span>');
+                if (config.browserNotify) indicators.push('<span class="indicator browser">Browser</span>');
+                
+                const tags = (config.tags || []).map(tag => '<span class="tag">' + tag + '</span>').join(' ');
+                
+                item.innerHTML = \`
+                    <div class="webhook-name">\${name}</div>
+                    <div class="webhook-url">
+                        <span>\${webhookUrl}</span>
+                    </div>
+                    <div class="webhook-details">
+                        <strong>Description:</strong> \${config.description}
+                    </div>
+                    <div class="webhook-indicators">
+                        \${indicators.join(' ')}
+                    </div>
+                    <div class="webhook-tags">
+                        \${tags}
+                    </div>
+                    <div class="webhook-actions">
+                        <button class="btn btn-secondary btn-small" onclick="editWebhook('\${name}')">Edit</button>
+                        <button class="btn btn-success btn-small" onclick="testWebhook('\${name}')">Test</button>
+                        <button class="btn btn-copy btn-small" onclick="copyToClipboard('\${webhookUrl}')">Copy</button>
+                        <button class="btn btn-warning btn-small" onclick="archiveWebhook('\${name}')">Archive</button>
+                    </div>
+                \`;
+                list.appendChild(item);
+            }
+        }
+        
+        // Display archived webhooks
+        function displayArchivedWebhooks() {
+            const list = document.getElementById('archivedList');
+            
+            if (Object.keys(archivedWebhooks).length === 0) {
+                list.innerHTML = '<div class="empty-state">No archived webhooks</div>';
+                return;
+            }
+            
+            list.innerHTML = '';
+            
+            for (const [name, config] of Object.entries(archivedWebhooks)) {
+                const item = document.createElement('div');
+                item.className = 'webhook-item';
+                item.innerHTML = \`
+                    <div class="webhook-name">\${name}</div>
+                    <div class="webhook-details">
+                        <strong>Description:</strong> \${config.description}<br>
+                        <strong>Archived:</strong> \${new Date(config.archivedAt).toLocaleString()}
+                    </div>
+                    <div class="webhook-actions">
+                        <button class="btn btn-primary btn-small" onclick="restoreWebhook('\${name}')">Restore</button>
+                    </div>
+                \`;
+                list.appendChild(item);
+            }
+        }
+        
+        // Load changelog
+        async function loadChangelog() {
+            try {
+                const response = await fetch(serviceUrl + '/api/changelog');
+                const changelog = await response.json();
+                
+                const list = document.getElementById('changelogList');
+                
+                if (changelog.length === 0) {
+                    list.innerHTML = '<div class="empty-state">No changes recorded yet</div>';
+                    return;
+                }
+                
+                list.innerHTML = '';
+                
+                // Show newest first
+                changelog.reverse().forEach(entry => {
+                    const item = document.createElement('div');
+                    item.className = 'changelog-entry';
+                    item.innerHTML = \`
+                        <div class="changelog-time">\${new Date(entry.timestamp).toLocaleString()}</div>
+                        <div class="changelog-action">\${entry.action.replace(/_/g, ' ')}: \${entry.webhookName}</div>
+                    \`;
+                    list.appendChild(item);
+                });
+            } catch (error) {
+                console.error('Error loading changelog:', error);
+            }
+        }
+        
+        // Update test type options
+        function updateTestTypeOptions() {
+            const select = document.getElementById('testType');
+            select.innerHTML = '<option value="general">General</option>';
+            
+            for (const name of Object.keys(webhooks)) {
+                const option = document.createElement('option');
+                option.value = name;
+                option.textContent = name;
+                select.appendChild(option);
+            }
+        }
+        
+        // Show test config
+        function showTestConfig() {
+            const type = document.getElementById('testType').value;
+            const config = webhooks[type];
+            
+            if (config) {
+                const display = document.getElementById('testConfigDisplay');
+                display.innerHTML = \`
+                    <strong>Configuration for \${type}:</strong><br>
+                    Recipients: \${config.recipients || 'None'}<br>
+                    Template: \${config.messageTemplate}<br>
+                    SMS: \${config.recipients ? 'Yes' : 'No'} | 
+                    Email: \${config.email ? 'Yes' : 'No'} | 
+                    Browser: \${config.browserNotify ? 'Yes' : 'No'}
+                \`;
+            }
+        }
+        
+        // Copy to clipboard
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                showToast('URL copied to clipboard!');
+            });
+        }
+        
+        // Show toast notification
+        function showToast(message, isError = false) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = isError ? 'toast error show' : 'toast show';
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+        
+        // Modal functions
+        function showAddWebhookModal() {
+            editingWebhook = null;
+            document.getElementById('modalTitle').textContent = 'Add New Webhook';
+            document.getElementById('webhookForm').reset();
+            document.getElementById('enableSMS').checked = true;
+            document.getElementById('recipientsGroup').style.display = 'block';
+            document.getElementById('emailGroup').style.display = 'none';
+            document.getElementById('webhookModal').classList.add('active');
+        }
+        
+        function editWebhook(name) {
+            editingWebhook = name;
+            const webhook = webhooks[name];
+            document.getElementById('modalTitle').textContent = 'Edit Webhook';
+            document.getElementById('webhookName').value = name;
+            document.getElementById('webhookDescription').value = webhook.description;
+            document.getElementById('webhookRecipients').value = webhook.recipients || '';
+            document.getElementById('webhookEmail').value = webhook.email || '';
+            document.getElementById('webhookTemplate').value = webhook.messageTemplate;
+            document.getElementById('webhookTags').value = (webhook.tags || []).join(', ');
+            document.getElementById('enableSMS').checked = !!webhook.recipients;
+            document.getElementById('enableEmail').checked = !!webhook.email;
+            document.getElementById('enableBrowser').checked = webhook.browserNotify || false;
+            document.getElementById('recipientsGroup').style.display = webhook.recipients ? 'block' : 'none';
+            document.getElementById('emailGroup').style.display = webhook.email ? 'block' : 'none';
+            document.getElementById('webhookModal').classList.add('active');
+        }
+        
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        }
+        
+        // Save webhook
+        document.getElementById('webhookForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const name = document.getElementById('webhookName').value.toLowerCase().replace(/[^a-z-]/g, '');
+            const tags = document.getElementById('webhookTags').value.split(',').map(t => t.trim()).filter(t => t);
+            
+            const config = {
+                description: document.getElementById('webhookDescription').value,
+                recipients: document.getElementById('enableSMS').checked ? document.getElementById('webhookRecipients').value : '',
+                email: document.getElementById('enableEmail').checked ? document.getElementById('webhookEmail').value : '',
+                messageTemplate: document.getElementById('webhookTemplate').value,
+                browserNotify: document.getElementById('enableBrowser').checked,
+                tags: tags
+            };
+            
+            try {
+                const url = editingWebhook 
+                    ? serviceUrl + '/api/webhooks/' + editingWebhook
+                    : serviceUrl + '/api/webhooks';
+                    
+                const method = editingWebhook ? 'PUT' : 'POST';
+                const body = editingWebhook ? config : { name, config };
+                
+                const response = await fetch(url, {
+                    method: method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+                
+                if (response.ok) {
+                    await refreshWebhooks();
+                    closeModal('webhookModal');
+                    showToast('Webhook saved successfully!');
+                } else {
+                    throw new Error('Failed to save webhook');
+                }
+            } catch (error) {
+                showToast('Error: ' + error.message, true);
+            }
+        });
+        
+        // Archive webhook
+        async function archiveWebhook(name) {
+            if (confirm('Archive the "' + name + '" webhook? You can restore it later.')) {
+                try {
+                    const response = await fetch(serviceUrl + '/api/webhooks/' + name + '/archive', {
+                        method: 'POST'
+                    });
+                    
+                    if (response.ok) {
+                        await refreshWebhooks();
+                        showToast('Webhook archived');
+                    } else {
+                        throw new Error('Failed to archive webhook');
+                    }
+                } catch (error) {
+                    showToast('Error: ' + error.message, true);
+                }
+            }
+        }
+        
+        // Restore webhook
+        async function restoreWebhook(name) {
+            try {
+                const response = await fetch(serviceUrl + '/api/webhooks/' + name + '/restore', {
+                    method: 'POST'
+                });
+                
+                if (response.ok) {
+                    await refreshWebhooks();
+                    showToast('Webhook restored');
+                    switchTab('active');
+                } else {
+                    throw new Error('Failed to restore webhook');
+                }
+            } catch (error) {
+                showToast('Error: ' + error.message, true);
+            }
+        }
+        
+        // Test webhook
+        async function testWebhook(name) {
+            try {
+                const response = await fetch(serviceUrl + '/test-sms', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        type: name,
+                        message: 'Test notification for ' + name + ' webhook'
+                    })
+                });
+                
+                if (response.ok) {
+                    showToast('Test SMS sent successfully!');
+                } else {
+                    throw new Error('Failed to send test SMS');
+                }
+            } catch (error) {
+                showToast('Error: ' + error.message, true);
+            }
+        }
+        
+        // Send test SMS
+        async function sendTestSMS() {
+            const message = document.getElementById('testMessage').value;
+            const type = document.getElementById('testType').value;
+            
+            if (!message) {
+                showToast('Please enter a test message', true);
+                return;
+            }
+            
+            try {
+                const response = await fetch(serviceUrl + '/test-sms', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message, type })
+                });
+                
+                if (response.ok) {
+                    showToast('Test SMS sent!');
+                    document.getElementById('testMessage').value = '';
+                } else {
+                    throw new Error('Failed to send SMS');
+                }
+            } catch (error) {
+                showToast('Error: ' + error.message, true);
+            }
+        }
+        
+        // Test connection
+        async function testConnection() {
+            try {
+                const response = await fetch(serviceUrl + '/health');
+                if (response.ok) {
+                    const data = await response.json();
+                    showToast('Connection successful! Uptime: ' + data.uptime + ' seconds');
+                    document.getElementById('connectionStatus').className = 'status connected';
+                    document.getElementById('connectionStatus').textContent = 'Connected';
+                } else {
+                    throw new Error('Service not responding');
+                }
+            } catch (error) {
+                showToast('Connection failed: ' + error.message, true);
+                document.getElementById('connectionStatus').className = 'status disconnected';
+                document.getElementById('connectionStatus').textContent = 'Disconnected';
+            }
+        }
+        
+        // Export data
+        function exportData() {
+            window.location.href = serviceUrl + '/api/export';
+        }
+        
+        // Import data
+        async function importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            try {
+                const text = await file.text();
+                const data = JSON.parse(text);
+                
+                const response = await fetch(serviceUrl + '/api/import', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                
+                if (response.ok) {
+                    await refreshWebhooks();
+                    showToast('Data imported successfully!');
+                } else {
+                    throw new Error('Import failed');
+                }
+            } catch (error) {
+                showToast('Error importing data: ' + error.message, true);
+            }
+            
+            event.target.value = '';
+        }
+        
+        // Initialize on load
+        init();
+    </script>
+</body>
+</html>\`;
+}
+
+// Function to generate help HTML
+function getHelpHTML() {
+    return \`<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Help - \${APP_NAME}</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f9fafb;
+        }
+        h1 { color: #333; border-bottom: 2px solid #6366f1; padding-bottom: 10px; }
+        h2 { color: #4b5563; margin-top: 30px; }
+        h3 { color: #6b7280; }
+        code {
+            background: #f3f4f6;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+        .url-example {
+            background: white;
+            border: 1px solid #e5e7eb;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            word-break: break-all;
+        }
+    </style>
+</head>
+<body>
+    <h1>Help Documentation</h1>
+    <p>Version \${APP_VERSION}</p>
+    
+    <h2>What's New in Version 3.0</h2>
+    <ul>
+        <li>Persistent data storage - webhooks are saved to disk</li>
+        <li>Tag system for organizing webhooks</li>
+        <li>Filter webhooks by name, tags, or notification type</li>
+        <li>Export/Import functionality for backups</li>
+        <li>Improved Test SMS with configuration preview</li>
+        <li>Webhook counter in header</li>
+        <li>Multiple notification methods per webhook</li>
+    </ul>
+    
+    <h2>Important: Your Credentials</h2>
+    <p>This version has hardcoded credentials. Make sure to update the client secret in app.js before deploying.</p>
+    
+    <h2>Data Persistence</h2>
+    <p>All webhooks are now saved to the server's disk in the /data directory. They will persist across restarts and updates.</p>
+    
+    <h2>Using Tags</h2>
+    <p>Tags help organize your webhooks. Add tags like "urgent", "sales", "support" to categorize and filter webhooks easily.</p>
+    
+    <h2>Backup Your Data</h2>
+    <p>Use the Export button to download all your webhooks and settings. Use Import to restore from a backup.</p>
+    
+    <p><a href="/manager">Back to Manager</a></p>
+</body>
+</html>\`;
+}
+
+// Initialize on startup
+(async () => {
+    await initDataDirectory();
+    notificationConfigs = await loadWebhooks();
+    archivedWebhooks = await loadArchived();
+    changelog = await loadChangelog();
+    
+    // Start the server
+    app.listen(port, () => {
+        console.log('========================================');
+        console.log(\`\${APP_NAME} v\${APP_VERSION}\`);
+        console.log('========================================');
+        console.log(\`Server running on port \${port}\`);
+        console.log('');
+        console.log('Web Manager: /manager');
+        console.log('Help Docs: /help');
+        console.log('');
+        console.log('Webhook endpoints:');
+        for (const key of Object.keys(notificationConfigs)) {
+            console.log(\`  /sms-whook/\${key}\`);
+        }
+        console.log('========================================');
+    });
+})();
