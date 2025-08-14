@@ -52,7 +52,7 @@ async function loadWebhooks() {
         console.error('Error loading webhooks:', error);
     }
     
-    // Return default webhooks if file doesn't exist
+    // Return default webhooks if file doesn't exist GORILLA
     return {
             'after-hours': {
                 recipients: config.myPhoneNumber,
@@ -1729,6 +1729,7 @@ function getHelpHTML() {
         console.log('========================================');
     });
 })();
+
 
 
 
