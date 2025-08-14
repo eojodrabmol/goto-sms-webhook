@@ -1,6 +1,6 @@
 const express = require('express');
 const axios = require('axios');
-const fs = require('fs');
+const fs = require('fs').promises; // Use promises version for async/await
 const path = require('path');
 const app = express();
 
@@ -14,14 +14,14 @@ app.use(express.json());
 const APP_VERSION = '3.0.0';
 const APP_NAME = 'JerkyLegThingy';
 
- const config = {
-   clientId: process.env.GOTO_CLIENT_ID ,
-     clientSecret: process.env.GOTO_CLIENT_SECRET,
-     gotoPhoneNumber: process.env.GOTO_PHONE_NUMBER ,
-     myPhoneNumber: process.env.MY_PHONE_NUMBER ,
-     tokenUrl: 'https://authentication.logmeininc.com/oauth/token',
-     smsApiUrl: 'https://api.goto.com/messaging/v1/messages'
- };
+const config = {
+    clientId: process.env.GOTO_CLIENT_ID,
+    clientSecret: process.env.GOTO_CLIENT_SECRET,
+    gotoPhoneNumber: process.env.GOTO_PHONE_NUMBER,
+    myPhoneNumber: process.env.MY_PHONE_NUMBER,
+    tokenUrl: 'https://authentication.logmeininc.com/oauth/token',
+    smsApiUrl: 'https://api.goto.com/messaging/v1/messages'
+};
 
 // Data file paths for persistence
 const DATA_DIR = path.join(__dirname, 'data');
@@ -32,6 +32,7 @@ const ARCHIVED_FILE = path.join(DATA_DIR, 'archived.json');
 // Initialize data directory
 async function initDataDirectory() {
     try {
+        const fs = require('fs');
         if (!fs.existsSync(DATA_DIR)) {
             fs.mkdirSync(DATA_DIR, { recursive: true });
         }
@@ -44,6 +45,7 @@ async function initDataDirectory() {
 // Load webhooks from file
 async function loadWebhooks() {
     try {
+        const fs = require('fs');
         if (fs.existsSync(WEBHOOKS_FILE)) {
             const data = fs.readFileSync(WEBHOOKS_FILE, 'utf8');
             return JSON.parse(data);
@@ -52,67 +54,67 @@ async function loadWebhooks() {
         console.error('Error loading webhooks:', error);
     }
     
-    // Return default webhooks if file doesn't exist GORILLA
+    // GORILLA
+    // Return default webhooks if file doesn't exist
     return {
-            'after-hours': {
-                recipients: config.myPhoneNumber,
-                messageTemplate: 'After Hours Call\nFrom: {callerNumber}\nTime: {time}\nExtension: {extension}',
-                description: 'Alerts for calls received after business hours',
-                email: '',
-                browserNotify: false,
-                tags: []
-            },
-            'fart-emergency': {
-                recipients: config.myPhoneNumber,
-                messageTemplate: 'EMERGENCY CALL\nFrom: {callerNumber}\nTime: {time}\nURGENT ATTENTION REQUIRED',
-                description: 'Emergency call notifications',
-                email: '',
-                browserNotify: true,
-                tags: ['urgent']
-            },
-            'vip': {
-                recipients: config.myPhoneNumber,
-                messageTemplate: 'VIP Customer Calling\nName: {callerName}\nNumber: {callerNumber}\nTime: {time}',
-                description: 'VIP customer call alerts',
-                email: '',
-                browserNotify: false,
-                tags: ['vip']
-            },
-            'sales': {
-                recipients: config.myPhoneNumber,
-                messageTemplate: 'Sales Call\nFrom: {callerNumber}\nTime: {time}\nSales line: {extension}',
-                description: 'New sales inquiry',
-                email: '',
-                browserNotify: false,
-                tags: ['sales']
-            },
-            'overflow': {
-                recipients: config.myPhoneNumber,
-                messageTemplate: 'Queue Overflow\nCaller waiting: {callerNumber}\nWait time exceeded\nTime: {time}',
-                description: 'Support queue overflow alert',
-                email: '',
-                browserNotify: true,
-                tags: ['urgent', 'support']
-            },
-            'missed': {
-                recipients: config.myPhoneNumber,
-                messageTemplate: 'Missed Call\nFrom: {callerNumber}\nTo: {extension}\nTime: {time}',
-                description: 'Missed call notification',
-                email: '',
-                browserNotify: false,
-                tags: []
-            },
-            'general': {
-                recipients: config.myPhoneNumber,
-                messageTemplate: 'Call Alert\nFrom: {callerNumber}\nTo: {extension}\nTime: {time}',
-                description: 'General call notification',
-                email: '',
-                browserNotify: false,
-                tags: []
-            }
-        };
-    }
-
+        'after-hours': {
+            recipients: config.myPhoneNumber,
+            messageTemplate: 'After Hours Call\nFrom: {callerNumber}\nTime: {time}\nExtension: {extension}',
+            description: 'Alerts for calls received after business hours',
+            email: '',
+            browserNotify: false,
+            tags: []
+        },
+        'fart-emergency': {
+            recipients: config.myPhoneNumber,
+            messageTemplate: 'EMERGENCY CALL\nFrom: {callerNumber}\nTime: {time}\nURGENT ATTENTION REQUIRED',
+            description: 'Emergency call notifications',
+            email: '',
+            browserNotify: true,
+            tags: ['urgent']
+        },
+        'vip': {
+            recipients: config.myPhoneNumber,
+            messageTemplate: 'VIP Customer Calling\nName: {callerName}\nNumber: {callerNumber}\nTime: {time}',
+            description: 'VIP customer call alerts',
+            email: '',
+            browserNotify: false,
+            tags: ['vip']
+        },
+        'sales': {
+            recipients: config.myPhoneNumber,
+            messageTemplate: 'Sales Call\nFrom: {callerNumber}\nTime: {time}\nSales line: {extension}',
+            description: 'New sales inquiry',
+            email: '',
+            browserNotify: false,
+            tags: ['sales']
+        },
+        'overflow': {
+            recipients: config.myPhoneNumber,
+            messageTemplate: 'Queue Overflow\nCaller waiting: {callerNumber}\nWait time exceeded\nTime: {time}',
+            description: 'Support queue overflow alert',
+            email: '',
+            browserNotify: true,
+            tags: ['urgent', 'support']
+        },
+        'missed': {
+            recipients: config.myPhoneNumber,
+            messageTemplate: 'Missed Call\nFrom: {callerNumber}\nTo: {extension}\nTime: {time}',
+            description: 'Missed call notification',
+            email: '',
+            browserNotify: false,
+            tags: []
+        },
+        'general': {
+            recipients: config.myPhoneNumber,
+            messageTemplate: 'Call Alert\nFrom: {callerNumber}\nTo: {extension}\nTime: {time}',
+            description: 'General call notification',
+            email: '',
+            browserNotify: false,
+            tags: []
+        }
+    };
+}
 
 // Save webhooks to file
 async function saveWebhooks(webhooks) {
@@ -1008,7 +1010,7 @@ function getManagerHTML(host) {
             margin-bottom: 10px;
             font-size: 16px;
         }
-</style>
+    </style>
 </head>
 <body>
     <div class="container">
@@ -1729,4 +1731,4 @@ function getHelpHTML() {
         console.log('========================================');
     });
 })();
-
+            
