@@ -12,7 +12,7 @@ app.use(express.json());
 
 // Version info
 const APP_VERSION = '3.0.0';
-const APP_NAME = 'GoTo SMS Webhook Manager';
+const APP_NAME = 'BIG JERKY LEG THING';
 
 // HARDCODED CONFIGURATION - Replace with your actual values
 const config = {
@@ -1742,3 +1742,4 @@ function getHelpHTML() {
         console.log('========================================');
     });
 })();
+
