@@ -15,10 +15,10 @@ const APP_VERSION = '3.0.0';
 const APP_NAME = 'JerkyLegThingy';
 
  const config = {
-     clientId: process.env.GOTO_CLIENT_ID || '39c83257-2599-49f5-9e18-4f043c3f16e5',
-     clientSecret: process.env.GOTO_CLIENT_SECRET || 'XA57RPTVbeNEJPUpdHoPHAXp',
-     gotoPhoneNumber: process.env.GOTO_PHONE_NUMBER || '+16254002500',
-     myPhoneNumber: process.env.MY_PHONE_NUMBER || '+16158305740',
+     clientId: process.env.GOTO_CLIENT_ID ,
+     clientSecret: process.env.GOTO_CLIENT_SECRET,
+     gotoPhoneNumber: process.env.GOTO_PHONE_NUMBER,
+     myPhoneNumber: process.env.MY_PHONE_NUMBER,
      tokenUrl: 'https://authentication.logmeininc.com/oauth/token',
      smsApiUrl: 'https://api.goto.com/messaging/v1/messages'
  };
@@ -1729,6 +1729,7 @@ function getHelpHTML() {
         console.log('========================================');
     });
 })();
+
 
 
 
