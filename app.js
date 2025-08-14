@@ -1284,8 +1284,9 @@ function getManagerHTML(host) {
                 if (config.browserNotify) indicators.push('<span class="indicator browser">Browser</span>');
                 
                 const tags = (config.tags || []).map(tag => '<span class="tag">' + tag + '</span>').join(' ');
+     // fixed backtick error 
                 
-                item.innerHTML = \`
+                item.innerHTML = `
                     <div class="webhook-name">\${name}</div>
                     <div class="webhook-url">
                         <span>\${webhookUrl}</span>
@@ -1305,7 +1306,7 @@ function getManagerHTML(host) {
                         <button class="btn btn-copy btn-small" onclick="copyToClipboard('\${webhookUrl}')">Copy</button>
                         <button class="btn btn-warning btn-small" onclick="archiveWebhook('\${name}')">Archive</button>
                     </div>
-                \`;
+                `;
                 list.appendChild(item);
             }
         }
@@ -1324,7 +1325,7 @@ function getManagerHTML(host) {
             for (const [name, config] of Object.entries(archivedWebhooks)) {
                 const item = document.createElement('div');
                 item.className = 'webhook-item';
-                item.innerHTML = \`
+                item.innerHTML = `
                     <div class="webhook-name">\${name}</div>
                     <div class="webhook-details">
                         <strong>Description:</strong> \${config.description}<br>
@@ -1333,7 +1334,7 @@ function getManagerHTML(host) {
                     <div class="webhook-actions">
                         <button class="btn btn-primary btn-small" onclick="restoreWebhook('\${name}')">Restore</button>
                     </div>
-                \`;
+                `;
                 list.appendChild(item);
             }
         }
@@ -1357,10 +1358,10 @@ function getManagerHTML(host) {
                 changelog.reverse().forEach(entry => {
                     const item = document.createElement('div');
                     item.className = 'changelog-entry';
-                    item.innerHTML = \`
+                    item.innerHTML = `
                         <div class="changelog-time">\${new Date(entry.timestamp).toLocaleString()}</div>
                         <div class="changelog-action">\${entry.action.replace(/_/g, ' ')}: \${entry.webhookName}</div>
-                    \`;
+                    `;
                     list.appendChild(item);
                 });
             } catch (error) {
@@ -1388,14 +1389,14 @@ function getManagerHTML(host) {
             
             if (config) {
                 const display = document.getElementById('testConfigDisplay');
-                display.innerHTML = \`
+                display.innerHTML = `
                     <strong>Configuration for \${type}:</strong><br>
                     Recipients: \${config.recipients || 'None'}<br>
                     Template: \${config.messageTemplate}<br>
                     SMS: \${config.recipients ? 'Yes' : 'No'} | 
                     Email: \${config.email ? 'Yes' : 'No'} | 
                     Browser: \${config.browserNotify ? 'Yes' : 'No'}
-                \`;
+                `;
             }
         }
         
@@ -1641,7 +1642,7 @@ function getManagerHTML(host) {
 
 // Function to generate help HTML
 function getHelpHTML() {
-    return \`<!DOCTYPE html>
+    return `<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -1704,8 +1705,8 @@ function getHelpHTML() {
     
     <p><a href="/manager">Back to Manager</a></p>
 </body>
-</html>\`;
-// removed an unmatched right curly brace
+</html>`;
+}
 
 // Initialize on startup
 (async () => {
@@ -1717,19 +1718,18 @@ function getHelpHTML() {
     // Start the server
     app.listen(port, () => {
         console.log('========================================');
-        console.log(\`\${APP_NAME} v\${APP_VERSION}\`);
+        console.log(`\${APP_NAME} v\${APP_VERSION}`);
         console.log('========================================');
-        console.log(\`Server running on port \${port}\`);
+        console.log(`Server running on port \${port}`);
         console.log('');
         console.log('Web Manager: /manager');
         console.log('Help Docs: /help');
         console.log('');
         console.log('Webhook endpoints:');
         for (const key of Object.keys(notificationConfigs)) {
-            console.log(\`  /sms-whook/\${key}\`);
+            console.log(`  /sms-whook/\${key}`);
         }
         console.log('========================================');
     });
 })();
             
-
