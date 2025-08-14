@@ -1,6 +1,6 @@
 const express = require('express');
 const axios = require('axios');
-const fs = require('fs').promises;
+const fs = require('fs');
 const path = require('path');
 const app = express();
 
@@ -33,7 +33,9 @@ const ARCHIVED_FILE = path.join(DATA_DIR, 'archived.json');
 // Initialize data directory
 async function initDataDirectory() {
     try {
-        await fs.mkdir(DATA_DIR, { recursive: true });
+        if (!fs.existsSync(DATA_DIR)) {
+            fs.mkdirSync(DATA_DIR, { recursive: true });
+        }
         console.log('Data directory initialized');
     } catch (error) {
         console.error('Error creating data directory:', error);
@@ -43,11 +45,16 @@ async function initDataDirectory() {
 // Load webhooks from file
 async function loadWebhooks() {
     try {
-        const data = await fs.readFile(WEBHOOKS_FILE, 'utf8');
-        return JSON.parse(data);
+        if (fs.existsSync(WEBHOOKS_FILE)) {
+            const data = fs.readFileSync(WEBHOOKS_FILE, 'utf8');
+            return JSON.parse(data);
+        }
     } catch (error) {
-        // Return default webhooks if file doesn't exist
-        return {
+        console.error('Error loading webhooks:', error);
+    }
+    
+    // Return default webhooks if file doesn't exist
+    return {
             'after-hours': {
                 recipients: config.myPhoneNumber,
                 messageTemplate: 'After Hours Call\nFrom: {callerNumber}\nTime: {time}\nExtension: {extension}',
