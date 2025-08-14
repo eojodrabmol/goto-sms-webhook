@@ -1287,24 +1287,24 @@ function getManagerHTML(host) {
      // fixed backtick error 
                 
                 item.innerHTML = `
-                    <div class="webhook-name">\${name}</div>
+                    <div class="webhook-name">${name}</div>
                     <div class="webhook-url">
-                        <span>\${webhookUrl}</span>
+                        <span>${webhookUrl}</span>
                     </div>
                     <div class="webhook-details">
-                        <strong>Description:</strong> \${config.description}
+                        <strong>Description:</strong> ${config.description}
                     </div>
                     <div class="webhook-indicators">
-                        \${indicators.join(' ')}
+                        ${indicators.join(' ')}
                     </div>
                     <div class="webhook-tags">
-                        \${tags}
+                        ${tags}
                     </div>
                     <div class="webhook-actions">
-                        <button class="btn btn-secondary btn-small" onclick="editWebhook('\${name}')">Edit</button>
-                        <button class="btn btn-success btn-small" onclick="testWebhook('\${name}')">Test</button>
-                        <button class="btn btn-copy btn-small" onclick="copyToClipboard('\${webhookUrl}')">Copy</button>
-                        <button class="btn btn-warning btn-small" onclick="archiveWebhook('\${name}')">Archive</button>
+                        <button class="btn btn-secondary btn-small" onclick="editWebhook('${name}')">Edit</button>
+                        <button class="btn btn-success btn-small" onclick="testWebhook('${name}')">Test</button>
+                        <button class="btn btn-copy btn-small" onclick="copyToClipboard('${webhookUrl}')">Copy</button>
+                        <button class="btn btn-warning btn-small" onclick="archiveWebhook('${name}')">Archive</button>
                     </div>
                 `;
                 list.appendChild(item);
@@ -1326,13 +1326,13 @@ function getManagerHTML(host) {
                 const item = document.createElement('div');
                 item.className = 'webhook-item';
                 item.innerHTML = `
-                    <div class="webhook-name">\${name}</div>
+                    <div class="webhook-name">${name}</div>
                     <div class="webhook-details">
-                        <strong>Description:</strong> \${config.description}<br>
-                        <strong>Archived:</strong> \${new Date(config.archivedAt).toLocaleString()}
+                        <strong>Description:</strong> ${config.description}<br>
+                        <strong>Archived:</strong> ${new Date(config.archivedAt).toLocaleString()}
                     </div>
                     <div class="webhook-actions">
-                        <button class="btn btn-primary btn-small" onclick="restoreWebhook('\${name}')">Restore</button>
+                        <button class="btn btn-primary btn-small" onclick="restoreWebhook('${name}')">Restore</button>
                     </div>
                 `;
                 list.appendChild(item);
@@ -1359,8 +1359,8 @@ function getManagerHTML(host) {
                     const item = document.createElement('div');
                     item.className = 'changelog-entry';
                     item.innerHTML = `
-                        <div class="changelog-time">\${new Date(entry.timestamp).toLocaleString()}</div>
-                        <div class="changelog-action">\${entry.action.replace(/_/g, ' ')}: \${entry.webhookName}</div>
+                        <div class="changelog-time">${new Date(entry.timestamp).toLocaleString()}</div>
+                        <div class="changelog-action">${entry.action.replace(/_/g, ' ')}: ${entry.webhookName}</div>
                     `;
                     list.appendChild(item);
                 });
@@ -1390,12 +1390,12 @@ function getManagerHTML(host) {
             if (config) {
                 const display = document.getElementById('testConfigDisplay');
                 display.innerHTML = `
-                    <strong>Configuration for \${type}:</strong><br>
-                    Recipients: \${config.recipients || 'None'}<br>
-                    Template: \${config.messageTemplate}<br>
-                    SMS: \${config.recipients ? 'Yes' : 'No'} | 
-                    Email: \${config.email ? 'Yes' : 'No'} | 
-                    Browser: \${config.browserNotify ? 'Yes' : 'No'}
+                    <strong>Configuration for ${type}:</strong><br>
+                    Recipients: ${config.recipients || 'None'}<br>
+                    Template: ${config.messageTemplate}<br>
+                    SMS: ${config.recipients ? 'Yes' : 'No'} | 
+                    Email: ${config.email ? 'Yes' : 'No'} | 
+                    Browser: ${config.browserNotify ? 'Yes' : 'No'}
                 `;
             }
         }
@@ -1647,7 +1647,7 @@ function getHelpHTML() {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Help - \${APP_NAME}</title>
+    <title>Help - ${APP_NAME}</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -1678,7 +1678,7 @@ function getHelpHTML() {
 </head>
 <body>
     <h1>Helpless Documentation</h1>
-    <p>Version \${APP_VERSION}</p>
+    <p>Version ${APP_VERSION}</p>
     
     <h2>What's New in Version 3.0</h2>
     <ul>
@@ -1718,16 +1718,16 @@ function getHelpHTML() {
     // Start the server
     app.listen(port, () => {
         console.log('========================================');
-        console.log(`\${APP_NAME} v\${APP_VERSION}`);
+        console.log(`${APP_NAME} v${APP_VERSION}`);
         console.log('========================================');
-        console.log(`Server running on port \${port}`);
+        console.log(`Server running on port ${port}`);
         console.log('');
         console.log('Web Manager: /manager');
         console.log('Help Docs: /help');
         console.log('');
         console.log('Webhook endpoints:');
         for (const key of Object.keys(notificationConfigs)) {
-            console.log(`  /sms-whook/\${key}`);
+            console.log(`  /sms-whook/${key}`);
         }
         console.log('========================================');
     });
