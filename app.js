@@ -1636,7 +1636,7 @@ function getManagerHTML(host) {
         init();
     </script>
 </body>
-</html>\`;
+</html>`;
 }
 
 // Function to generate help HTML
@@ -1705,7 +1705,7 @@ function getHelpHTML() {
     <p><a href="/manager">Back to Manager</a></p>
 </body>
 </html>\`;
-}
+// removed an unmatched right curly brace
 
 // Initialize on startup
 (async () => {
@@ -1732,3 +1732,4 @@ function getHelpHTML() {
     });
 })();
             
+
