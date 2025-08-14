@@ -14,25 +14,14 @@ app.use(express.json());
 const APP_VERSION = '3.0.0';
 const APP_NAME = 'JerkyLegThingy';
 
-// HARDCODED CONFIGURATION - Replace with your actual values
-const config = {
-    clientId: '39c83257-2599-49f5-9e18-4f043c3f16e5',  // Replace with your actual client ID
-    clientSecret: 'XA57RPTVbeNEJPUpdHoPHAXp',            // REPLACE THIS WITH YOUR ACTUAL SECRET
-    gotoPhoneNumber: '+16254002500',                    // Your GoTo phone number
-    myPhoneNumber: '+16158305740',                      // Your personal cell phone
-    tokenUrl: 'https://authentication.logmeininc.com/oauth/token',
-    smsApiUrl: 'https://api.goto.com/messaging/v1/messages'
-};
-
-// TO USE ENVIRONMENT VARIABLES INSTEAD, UNCOMMENT THESE LINES:
-// const config = {
-//     clientId: process.env.GOTO_CLIENT_ID || '39c83257-2599-49f5-9e18-4f043c3f16e5',
-//     clientSecret: process.env.GOTO_CLIENT_SECRET || 'XA57RPTVbeNEJPUpdHoPHAXp',
-//     gotoPhoneNumber: process.env.GOTO_PHONE_NUMBER || '+16254002500',
-//     myPhoneNumber: process.env.MY_PHONE_NUMBER || '+16158305740',
-//     tokenUrl: 'https://authentication.logmeininc.com/oauth/token',
-//     smsApiUrl: 'https://api.goto.com/messaging/v1/messages'
-// };
+ const config = {
+     clientId: process.env.GOTO_CLIENT_ID || '39c83257-2599-49f5-9e18-4f043c3f16e5',
+     clientSecret: process.env.GOTO_CLIENT_SECRET || 'XA57RPTVbeNEJPUpdHoPHAXp',
+     gotoPhoneNumber: process.env.GOTO_PHONE_NUMBER || '+16254002500',
+     myPhoneNumber: process.env.MY_PHONE_NUMBER || '+16158305740',
+     tokenUrl: 'https://authentication.logmeininc.com/oauth/token',
+     smsApiUrl: 'https://api.goto.com/messaging/v1/messages'
+ };
 
 // Data file paths for persistence
 const DATA_DIR = path.join(__dirname, 'data');
@@ -1740,4 +1729,5 @@ function getHelpHTML() {
         console.log('========================================');
     });
 })();
+
 
