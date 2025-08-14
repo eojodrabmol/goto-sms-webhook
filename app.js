@@ -303,7 +303,7 @@ app.get('/', (req, res) => {
         status: 'running',
         version: APP_VERSION,
         message: APP_NAME,
-        manager: `${baseUrl}/manager`,
+        manager: `${baseUrl}/strangler`,
         availableEndpoints: endpoints,
         timestamp: new Date().toISOString()
     });
@@ -494,9 +494,9 @@ app.get('/config', (req, res) => {
     });
 });
 
-// Serve the web manager interface
-app.get('/manager', (req, res) => {
-    const html = getManagerHTML(req.get('host'));
+// Serve the web strangler interface
+app.get('/strangler', (req, res) => {
+    const html = getstranglerHTML(req.get('host'));
     res.send(html);
 });
 
@@ -544,8 +544,8 @@ app.post('/api/import', async (req, res) => {
     }
 });
 
-// Function to generate the manager HTML
-function getManagerHTML(host) {
+// Function to generate the strangler HTML
+function getstranglerHTML(host) {
     return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1713,7 +1713,7 @@ function getHelpHTML() {
     <h2>Backup Your Data</h2>
     <p>Use the Export button to download all your webhooks and settings. Use Import to restore from a backup.</p>
     
-    <p><a href="/manager">Back to Manager</a></p>
+    <p><a href="/strangler">Back to strangler</a></p>
 </body>
 </html>\`;
 }
@@ -1732,7 +1732,7 @@ function getHelpHTML() {
         console.log('========================================');
         console.log(\`Server running on port \${port}\`);
         console.log('');
-        console.log('Web Manager: /manager');
+        console.log('Web strangler: /strangler');
         console.log('Help Docs: /help');
         console.log('');
         console.log('Webhook endpoints:');
@@ -1742,4 +1742,5 @@ function getHelpHTML() {
         console.log('========================================');
     });
 })();
+
 
