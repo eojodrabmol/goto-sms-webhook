@@ -12,7 +12,7 @@ app.use(express.json());
 
 // Version info
 const APP_VERSION = '3.0.0';
-const APP_NAME = 'BIG JERKY LEG THING';
+const APP_NAME = 'JerkyLegThingy';
 
 // HARDCODED CONFIGURATION - Replace with your actual values
 const config = {
@@ -27,7 +27,7 @@ const config = {
 // TO USE ENVIRONMENT VARIABLES INSTEAD, UNCOMMENT THESE LINES:
 // const config = {
 //     clientId: process.env.GOTO_CLIENT_ID || '39c83257-2599-49f5-9e18-4f043c3f16e5',
-//     clientSecret: process.env.GOTO_CLIENT_SECRET || 'your-secret-here',
+//     clientSecret: process.env.GOTO_CLIENT_SECRET || 'XA57RPTVbeNEJPUpdHoPHAXp',
 //     gotoPhoneNumber: process.env.GOTO_PHONE_NUMBER || '+16254002500',
 //     myPhoneNumber: process.env.MY_PHONE_NUMBER || '+16158305740',
 //     tokenUrl: 'https://authentication.logmeininc.com/oauth/token',
@@ -73,7 +73,7 @@ async function loadWebhooks() {
                 browserNotify: false,
                 tags: []
             },
-            'emergency': {
+            'fart-emergency': {
                 recipients: config.myPhoneNumber,
                 messageTemplate: 'EMERGENCY CALL\nFrom: {callerNumber}\nTime: {time}\nURGENT ATTENTION REQUIRED',
                 description: 'Emergency call notifications',
@@ -123,7 +123,7 @@ async function loadWebhooks() {
             }
         };
     }
-// }
+}
 
 // Save webhooks to file
 async function saveWebhooks(webhooks) {
@@ -303,7 +303,7 @@ app.get('/', (req, res) => {
         status: 'running',
         version: APP_VERSION,
         message: APP_NAME,
-        manager: `${baseUrl}/strangler`,
+        manager: `${baseUrl}/manager`,
         availableEndpoints: endpoints,
         timestamp: new Date().toISOString()
     });
@@ -494,9 +494,9 @@ app.get('/config', (req, res) => {
     });
 });
 
-// Serve the web strangler interface
-app.get('/strangler', (req, res) => {
-    const html = getstranglerHTML(req.get('host'));
+// Serve the web manager interface
+app.get('/manager', (req, res) => {
+    const html = getManagerHTML(req.get('host'));
     res.send(html);
 });
 
@@ -544,8 +544,8 @@ app.post('/api/import', async (req, res) => {
     }
 });
 
-// Function to generate the strangler HTML
-function getstranglerHTML(host) {
+// Function to generate the manager HTML
+function getManagerHTML(host) {
     return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1019,8 +1019,6 @@ function getstranglerHTML(host) {
             margin-bottom: 10px;
             font-size: 16px;
         }
-
-
 </style>
 </head>
 <body>
@@ -1029,7 +1027,7 @@ function getstranglerHTML(host) {
             <div class="header-left">
                 <div>
                     <h1>${APP_NAME}</h1>
-                    <div class="version">Version ${APP_VERSION}</div>
+                    <div class="version">SubVersion ${APP_VERSION}</div>
                 </div>
                 <span class="webhook-counter" id="webhookCounter">0 Webhooks</span>
                 <span class="status connected" id="connectionStatus">Connected</span>
@@ -1687,7 +1685,7 @@ function getHelpHTML() {
     </style>
 </head>
 <body>
-    <h1>Help Documentation</h1>
+    <h1>Helpless Documentation</h1>
     <p>Version \${APP_VERSION}</p>
     
     <h2>What's New in Version 3.0</h2>
@@ -1713,7 +1711,7 @@ function getHelpHTML() {
     <h2>Backup Your Data</h2>
     <p>Use the Export button to download all your webhooks and settings. Use Import to restore from a backup.</p>
     
-    <p><a href="/strangler">Back to strangler</a></p>
+    <p><a href="/manager">Back to Manager</a></p>
 </body>
 </html>\`;
 }
@@ -1732,7 +1730,7 @@ function getHelpHTML() {
         console.log('========================================');
         console.log(\`Server running on port \${port}\`);
         console.log('');
-        console.log('Web strangler: /strangler');
+        console.log('Web Manager: /manager');
         console.log('Help Docs: /help');
         console.log('');
         console.log('Webhook endpoints:');
@@ -1742,5 +1740,3 @@ function getHelpHTML() {
         console.log('========================================');
     });
 })();
-
-
