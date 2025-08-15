@@ -1320,12 +1320,12 @@ function getManagerHTML(host) {
                 return;
             }
             
-            list.innerHTML = \';
+            list.innerHTML = '';
             
             for (const [name, config] of Object.entries(archivedWebhooks)) {
                 const item = document.createElement('div');
                 item.className = 'webhook-item';
-                item.innerHTML = `
+                item.innerHTML = \`
                     <div class="webhook-name">${name}</div>
                     <div class="webhook-details">
                         <strong>Description:</strong> ${config.description}<br>
@@ -1733,4 +1733,5 @@ function getHelpHTML() {
     });
 })();
             
+
 
