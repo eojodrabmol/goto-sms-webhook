@@ -1320,7 +1320,7 @@ function getManagerHTML(host) {
                 return;
             }
             
-            list.innerHTML = '';
+            list.innerHTML = \';
             
             for (const [name, config] of Object.entries(archivedWebhooks)) {
                 const item = document.createElement('div');
@@ -1334,7 +1334,7 @@ function getManagerHTML(host) {
                     <div class="webhook-actions">
                         <button class="btn btn-primary btn-small" onclick="restoreWebhook('${name}')">Restore</button>
                     </div>
-                `;
+                \`;
                 list.appendChild(item);
             }
         }
@@ -1733,3 +1733,4 @@ function getHelpHTML() {
     });
 })();
             
+
