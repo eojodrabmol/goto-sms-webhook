@@ -1286,7 +1286,7 @@ function getManagerHTML(host) {
                 const tags = (config.tags || []).map(tag => '<span class="tag">' + tag + '</span>').join(' ');
      // fixed backtick error 
                 
-                item.innerHTML = `
+                item.innerHTML = \`
                     <div class="webhook-name">${name}</div>
                     <div class="webhook-url">
                         <span>${webhookUrl}</span>
@@ -1306,7 +1306,7 @@ function getManagerHTML(host) {
                         <button class="btn btn-copy btn-small" onclick="copyToClipboard('${webhookUrl}')">Copy</button>
                         <button class="btn btn-warning btn-small" onclick="archiveWebhook('${name}')">Archive</button>
                     </div>
-                `;
+                \`;
                 list.appendChild(item);
             }
         }
