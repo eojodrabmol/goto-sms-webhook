@@ -1358,10 +1358,10 @@ function getManagerHTML(host) {
                 changelog.reverse().forEach(entry => {
                     const item = document.createElement('div');
                     item.className = 'changelog-entry';
-                    item.innerHTML = `
+                    item.innerHTML = \`
                         <div class="changelog-time">${new Date(entry.timestamp).toLocaleString()}</div>
                         <div class="changelog-action">${entry.action.replace(/_/g, ' ')}: ${entry.webhookName}</div>
-                    `;
+                    \`;
                     list.appendChild(item);
                 });
             } catch (error) {
@@ -1389,14 +1389,14 @@ function getManagerHTML(host) {
             
             if (config) {
                 const display = document.getElementById('testConfigDisplay');
-                display.innerHTML = `
+                display.innerHTML = \`
                     <strong>Configuration for ${type}:</strong><br>
                     Recipients: ${config.recipients || 'None'}<br>
                     Template: ${config.messageTemplate}<br>
                     SMS: ${config.recipients ? 'Yes' : 'No'} | 
                     Email: ${config.email ? 'Yes' : 'No'} | 
                     Browser: ${config.browserNotify ? 'Yes' : 'No'}
-                `;
+                \`;
             }
         }
         
@@ -1733,5 +1733,6 @@ function getHelpHTML() {
     });
 })();
             
+
 
 
