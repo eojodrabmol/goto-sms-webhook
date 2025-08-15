@@ -1267,7 +1267,7 @@ function getManagerHTML(host) {
             const list = document.getElementById('webhookList');
             
             if (Object.keys(webhooksToDisplay).length === 0) {
-                list.innerHTML = '<div class="empty-state">No webhooks found. Click "+ Add Webhook" to create one.</div>';
+                list.innerHTML = '<div class=\"empty-state\">No webhooks found. Click \"+ Add Webhook\" to create one.</div>';
                 return;
             }
             
