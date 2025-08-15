@@ -1,4 +1,4 @@
-// last known semi working copy before addressing  dollar sign left brace  being escaped with a backslash
+// last known semi working copy AFTER addressing  dollar sign left brace  being escaped with a backslash
 
 const express = require('express');
 const axios = require('axios');
@@ -1289,24 +1289,24 @@ function getManagerHTML(host) {
      // fixed backtick error 
                 
                 item.innerHTML = \`
-                    <div class="webhook-name">${name}</div>
+                    <div class="webhook-name">\${name}</div>
                     <div class="webhook-url">
-                        <span>${webhookUrl}</span>
+                        <span>\${webhookUrl}</span>
                     </div>
                     <div class="webhook-details">
-                        <strong>Description:</strong> ${config.description}
+                        <strong>Description:</strong> \${config.description}
                     </div>
                     <div class="webhook-indicators">
-                        ${indicators.join(' ')}
+                        \${indicators.join(' ')}
                     </div>
                     <div class="webhook-tags">
-                        ${tags}
+                        \${tags}
                     </div>
                     <div class="webhook-actions">
-                        <button class="btn btn-secondary btn-small" onclick="editWebhook('${name}')">Edit</button>
-                        <button class="btn btn-success btn-small" onclick="testWebhook('${name}')">Test</button>
-                        <button class="btn btn-copy btn-small" onclick="copyToClipboard('${webhookUrl}')">Copy</button>
-                        <button class="btn btn-warning btn-small" onclick="archiveWebhook('${name}')">Archive</button>
+                        <button class="btn btn-secondary btn-small" onclick="editWebhook('\${name}')">Edit</button>
+                        <button class="btn btn-success btn-small" onclick="testWebhook('\${name}')">Test</button>
+                        <button class="btn btn-copy btn-small" onclick="copyToClipboard('\${webhookUrl}')">Copy</button>
+                        <button class="btn btn-warning btn-small" onclick="archiveWebhook('\${name}')">Archive</button>
                     </div>
                 \`;
                 list.appendChild(item);
@@ -1328,13 +1328,13 @@ function getManagerHTML(host) {
                 const item = document.createElement('div');
                 item.className = 'webhook-item';
                 item.innerHTML = \`
-                    <div class="webhook-name">${name}</div>
+                    <div class="webhook-name">\${name}</div>
                     <div class="webhook-details">
-                        <strong>Description:</strong> ${config.description}<br>
-                        <strong>Archived:</strong> ${new Date(config.archivedAt).toLocaleString()}
+                        <strong>Description:</strong> \${config.description}<br>
+                        <strong>Archived:</strong> \${new Date(config.archivedAt).toLocaleString()}
                     </div>
                     <div class="webhook-actions">
-                        <button class="btn btn-primary btn-small" onclick="restoreWebhook('${name}')">Restore</button>
+                        <button class="btn btn-primary btn-small" onclick="restoreWebhook('\${name}')">Restore</button>
                     </div>
                 \`;
                 list.appendChild(item);
@@ -1361,8 +1361,8 @@ function getManagerHTML(host) {
                     const item = document.createElement('div');
                     item.className = 'changelog-entry';
                     item.innerHTML = \`
-                        <div class="changelog-time">${new Date(entry.timestamp).toLocaleString()}</div>
-                        <div class="changelog-action">${entry.action.replace(/_/g, ' ')}: ${entry.webhookName}</div>
+                        <div class="changelog-time">\${new Date(entry.timestamp).toLocaleString()}</div>
+                        <div class="changelog-action">\${entry.action.replace(/_/g, ' ')}: \${entry.webhookName}</div>
                     \`;
                     list.appendChild(item);
                 });
@@ -1392,12 +1392,12 @@ function getManagerHTML(host) {
             if (config) {
                 const display = document.getElementById('testConfigDisplay');
                 display.innerHTML = \`
-                    <strong>Configuration for ${type}:</strong><br>
-                    Recipients: ${config.recipients || 'None'}<br>
-                    Template: ${config.messageTemplate}<br>
-                    SMS: ${config.recipients ? 'Yes' : 'No'} | 
-                    Email: ${config.email ? 'Yes' : 'No'} | 
-                    Browser: ${config.browserNotify ? 'Yes' : 'No'}
+                    <strong>Configuration for \${type}:</strong><br>
+                    Recipients: \${config.recipients || 'None'}<br>
+                    Template: \${config.messageTemplate}<br>
+                    SMS: \${config.recipients ? 'Yes' : 'No'} | 
+                    Email: \${config.email ? 'Yes' : 'No'} | 
+                    Browser: \${config.browserNotify ? 'Yes' : 'No'}
                 \`;
             }
         }
@@ -1735,5 +1735,4 @@ function getHelpHTML() {
     });
 })();
             
-// last known semi working copy before addressing  dollar sign left brace  being escaped with a backslash
-
+// last known semi working copy after addressing  dollar sign left brace  being escaped with a backslash
